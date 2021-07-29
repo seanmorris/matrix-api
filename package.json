@@ -1,8 +1,9 @@
 {
-  "name": "Matrix API",
+  "name": "matrix-api",
   "description": "Basic Matrix API lib",
+  "main":"Matrix.js",
   "author": "Sean Morris",
-  "version": "0.0.0",
+  "version": "0.0.0a",
   "repository": "",
   "scripts": {
     "start": "brunch watch --server",
