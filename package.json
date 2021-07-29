@@ -1,6 +1,7 @@
 {
   "name": "matrix-api",
   "description": "Basic Matrix API lib",
+  "license": "Apache-2.0",
   "main":"Matrix.js",
   "author": "Sean Morris",
   "version": "0.0.0-b",
