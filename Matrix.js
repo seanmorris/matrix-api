@@ -1,330 +1,466 @@
-import { Mixin } from 'curvature/base/Mixin';
-import { EventTargetMixin } from 'curvature/mixin/EventTargetMixin';
-export class Matrix extends Mixin.with(EventTargetMixin) {
-  constructor() {
-    super();
-    this.baseUrl = 'https://matrix.org/_matrix';
-    this.clientUrl = `${this.baseUrl}/client/r0`;
-    this.mediaUrl = `${this.baseUrl}/media/r0`;
-    this.mediaCache = new Map();
-    this.profileCache = new Map();
+"use strict";
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Matrix = void 0;
+
+var _Mixin = require("curvature/base/Mixin");
+
+var _EventTargetMixin = require("curvature/mixin/EventTargetMixin");
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+var Matrix = function (_Mixin$with) {
+  _inherits(Matrix, _Mixin$with);
+
+  var _super = _createSuper(Matrix);
+
+  function Matrix() {
+    var _this;
+
+    _classCallCheck(this, Matrix);
+
+    _this = _super.call(this);
+    _this.baseUrl = 'https://matrix.org/_matrix';
+    _this.clientUrl = "".concat(_this.baseUrl, "/client/r0");
+    _this.mediaUrl = "".concat(_this.baseUrl, "/media/r0");
+    _this.mediaCache = new Map();
+    _this.profileCache = new Map();
+    return _this;
   }
 
-  initSso(redirectUri) {
-    const path = 'login/sso/redirect?redirectUrl=' + redirectUri;
-    const ssoPopup = window.open(`${this.clientUrl}/${path}`);
+  _createClass(Matrix, [{
+    key: "initSso",
+    value: function initSso(redirectUri) {
+      var _this2 = this;
 
-    const ssoListener = event => {
-      if (event.origin !== location.origin) {
+      var path = 'login/sso/redirect?redirectUrl=' + redirectUri;
+      var ssoPopup = window.open("".concat(this.clientUrl, "/").concat(path));
+
+      var ssoListener = function ssoListener(event) {
+        if (event.origin !== location.origin) {
+          return;
+        }
+
+        var request = JSON.parse(event.data);
+
+        if (request.type !== 's.sso.complete') {
+          return;
+        }
+
+        sessionStorage.setItem('matrix:access-token', JSON.stringify(request.data));
+
+        _this2.dispatchEvent(new CustomEvent('login'));
+      };
+
+      window.addEventListener('message', ssoListener);
+    }
+  }, {
+    key: "completeSso",
+    value: function completeSso(loginToken) {
+      var path = 'login';
+      var body = {
+        type: "m.login.token",
+        token: loginToken,
+        txn_id: (1 / Math.random()).toString(36)
+      };
+      fetch("".concat(this.clientUrl, "/").concat(path), {
+        method: 'POST',
+        body: JSON.stringify(body)
+      }).then(function (response) {
+        return response.json();
+      }).then(function (response) {
+        window.opener.postMessage(JSON.stringify({
+          type: 's.sso.complete',
+          data: response
+        }), location.origin);
+        window.close();
+      });
+    }
+  }, {
+    key: "getGuestToken",
+    value: function getGuestToken() {
+      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var token = JSON.parse(tokenJson);
+
+      if (token && token.isGuest) {
+        return Promise.resolve(token);
+      }
+
+      var getToken = fetch("".concat(this.clientUrl, "/register?kind=guest"), {
+        method: 'POST',
+        body: '{}'
+      }).then(function (response) {
+        return response.json();
+      });
+      getToken.then(function (token) {
+        token.isGuest = true;
+        sessionStorage.setItem('matrix:access-token', JSON.stringify(token));
+      });
+      return getToken;
+    }
+  }, {
+    key: "getToken",
+    value: function getToken() {
+      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var token = JSON.parse(tokenJson);
+
+      if (token) {
+        return Promise.resolve(token);
+      }
+
+      return matrix.getGuestToken();
+    }
+  }, {
+    key: "listenForServerEvents",
+    value: function listenForServerEvents() {
+      var _this3 = this;
+
+      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+
+      if (!token) {
+        return Promise.reject('No access token found.');
+      }
+
+      var listener = "".concat(this.clientUrl, "/events?access_token=").concat(token.access_token);
+      fetch(listener).then(function (response) {
+        return response.json();
+      }).then(function (response) {
+        return _this3.streamServerEvents(response);
+      });
+    }
+  }, {
+    key: "listenForRoomEvents",
+    value: function listenForRoomEvents(room_id, controller) {
+      var _this4 = this;
+
+      var from = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+
+      if (controller && controller.cancelled) {
         return;
       }
 
-      const request = JSON.parse(event.data);
+      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
 
-      if (request.type !== 's.sso.complete') {
+      if (!token) {
+        return Promise.reject('No access token found.');
+      }
+
+      var listener = "".concat(this.clientUrl, "/events?room_id=").concat(room_id, "&access_token=").concat(token.access_token, "&from=").concat(from);
+      controller = controller || {
+        cancelled: false
+      };
+      fetch(listener).then(function (response) {
+        return response.json();
+      }).then(function (response) {
+        return _this4.streamServerEvents(response, room_id, controller);
+      });
+      return controller;
+    }
+  }, {
+    key: "getUserProfile",
+    value: function getUserProfile(userId) {
+      if (this.profileCache.has(userId, getProfile)) {
+        return this.profileCache.get(userId, getProfile);
+      }
+
+      var getProfile = fetch("".concat(this.clientUrl, "/profile/").concat(userId)).then(function (response) {
+        return response.json();
+      });
+      this.profileCache.set(userId, getProfile);
+      return getProfile;
+    }
+  }, {
+    key: "getUserData",
+    value: function getUserData(type) {
+      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+
+      if (!token) {
+        return Promise.reject('No access token found.');
+      }
+
+      return fetch("".concat(this.clientUrl, "/user/").concat(token.user_id, "/account_data/").concat(type, "?access_token=").concat(token.access_token)).then(function (response) {
+        return response.json();
+      });
+    }
+  }, {
+    key: "putUserData",
+    value: function putUserData(type, body) {
+      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+
+      if (!token) {
         return;
       }
 
-      sessionStorage.setItem('matrix:access-token', JSON.stringify(request.data));
-      this.dispatchEvent(new CustomEvent('login'));
-    };
+      var endpoint = "".concat(this.clientUrl, "/user/").concat(token.user_id, "/account_data/").concat(type, "?access_token=").concat(token.access_token);
+      return fetch(endpoint, {
+        method: 'PUT',
+        body: body
+      }).then(function (response) {
+        if (!response.ok) {
+          var error = new Error("HTTP status code: " + response.status);
+          error.status = response.status;
+          error.response = response;
+          throw error;
+        }
 
-    window.addEventListener('message', ssoListener);
-  }
-
-  completeSso(loginToken) {
-    const path = 'login';
-    const body = {
-      type: "m.login.token",
-      token: loginToken,
-      txn_id: (1 / Math.random()).toString(36)
-    };
-    fetch(`${this.clientUrl}/${path}`, {
-      method: 'POST',
-      body: JSON.stringify(body)
-    }).then(response => response.json()).then(response => {
-      window.opener.postMessage(JSON.stringify({
-        type: 's.sso.complete',
-        data: response
-      }), location.origin);
-      window.close();
-    });
-  }
-
-  getGuestToken() {
-    const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
-    const token = JSON.parse(tokenJson);
-
-    if (token && token.isGuest) {
-      return Promise.resolve(token);
+        return response;
+      }).then(function (response) {
+        return response.json();
+      });
     }
-
-    const getToken = fetch(`${this.clientUrl}/register?kind=guest`, {
-      method: 'POST',
-      body: '{}'
-    }).then(response => response.json());
-    getToken.then(token => {
-      token.isGuest = true;
-      sessionStorage.setItem('matrix:access-token', JSON.stringify(token));
-    });
-    return getToken;
-  }
-
-  getToken() {
-    const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
-    const token = JSON.parse(tokenJson);
-
-    if (token) {
-      return Promise.resolve(token);
+  }, {
+    key: "getMediaUrl",
+    value: function getMediaUrl(mxcUrl) {
+      var url = new URL(mxcUrl);
+      return "".concat(this.mediaUrl, "/download/").concat(url.pathname.substr(2));
     }
-
-    return matrix.getGuestToken();
-  }
-
-  listenForServerEvents() {
-    const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
-
-    if (!token) {
-      return Promise.reject('No access token found.');
-    }
-
-    const listener = `${this.clientUrl}/events?access_token=${token.access_token}`;
-    fetch(listener).then(response => response.json()).then(response => this.streamServerEvents(response));
-  }
-
-  listenForRoomEvents(room_id, controller, from = '') {
-    if (controller && controller.cancelled) {
-      return;
-    }
-
-    const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
-
-    if (!token) {
-      return Promise.reject('No access token found.');
-    }
-
-    const listener = `${this.clientUrl}/events?room_id=${room_id}&access_token=${token.access_token}&from=${from}`;
-    controller = controller || {
-      cancelled: false
-    };
-    fetch(listener).then(response => response.json()).then(response => this.streamServerEvents(response, room_id, controller));
-    return controller;
-  }
-
-  getUserProfile(userId) {
-    if (this.profileCache.has(userId, getProfile)) {
-      return this.profileCache.get(userId, getProfile);
-    }
-
-    const getProfile = fetch(`${this.clientUrl}/profile/${userId}`).then(response => response.json());
-    this.profileCache.set(userId, getProfile);
-    return getProfile;
-  }
-
-  getUserData(type) {
-    const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
-
-    if (!token) {
-      return Promise.reject('No access token found.');
-    }
-
-    return fetch(`${this.clientUrl}/user/${token.user_id}/account_data/${type}?access_token=${token.access_token}`).then(response => response.json());
-  }
-
-  putUserData(type, body) {
-    const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
-
-    if (!token) {
-      return;
-    }
-
-    const endpoint = `${this.clientUrl}/user/${token.user_id}/account_data/${type}?access_token=${token.access_token}`;
-    return fetch(endpoint, {
-      method: 'PUT',
-      body
-    }).then(response => {
-      if (!response.ok) {
-        const error = new Error("HTTP status code: " + response.status);
-        error.status = response.status;
-        error.response = response;
-        throw error;
+  }, {
+    key: "getMedia",
+    value: function getMedia(mxcUrl) {
+      if (this.mediaCache.has(mxcUrl)) {
+        return this.mediaCache.get(mxcUrl);
       }
 
-      return response;
-    }).then(response => response.json());
-  }
+      var getUrl = fetch(this.getMediaUrl(mxcUrl)).then(function (response) {
+        return Promise.all([response.arrayBuffer(), response.headers.get('Content-type')]);
+      }).then(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 2),
+            buffer = _ref2[0],
+            type = _ref2[1];
 
-  getMediaUrl(mxcUrl) {
-    const url = new URL(mxcUrl);
-    return `${this.mediaUrl}/download/${url.pathname.substr(2)}`;
-  }
-
-  getMedia(mxcUrl) {
-    if (this.mediaCache.has(mxcUrl)) {
-      return this.mediaCache.get(mxcUrl);
+        return URL.createObjectURL(new Blob([buffer], {
+          type: type
+        }));
+      });
+      this.mediaCache.set(mxcUrl, getUrl);
+      return getUrl;
     }
+  }, {
+    key: "postMedia",
+    value: function postMedia(body, filename) {
+      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var token = JSON.parse(tokenJson);
 
-    const getUrl = fetch(this.getMediaUrl(mxcUrl)).then(response => Promise.all([response.arrayBuffer(), response.headers.get('Content-type')])).then(([buffer, type]) => URL.createObjectURL(new Blob([buffer], {
-      type
-    })));
-    this.mediaCache.set(mxcUrl, getUrl);
-    return getUrl;
-  }
-
-  postMedia(body, filename) {
-    const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
-    const token = JSON.parse(tokenJson);
-
-    if (!token) {
-      return;
-    }
-
-    const url = `${this.mediaUrl}/upload?access_token=${token.access_token}`;
-    const headers = new Headers({
-      'Content-Type': body.type
-    });
-    const method = 'POST';
-    const options = {
-      method,
-      headers,
-      body
-    };
-    return fetch(url, options).then(response => response.json());
-  }
-
-  putEvent(roomId, type, body) {
-    const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
-    const token = JSON.parse(tokenJson);
-
-    if (!token) {
-      return;
-    }
-
-    const url = `${this.clientUrl}/rooms/${roomId}/send/${type}/${Math.random().toString(36)}?access_token=${token.access_token}`;
-    const headers = new Headers({
-      'Content-Type': body.type
-    });
-    const method = 'PUT';
-    const options = {
-      method,
-      headers,
-      body: JSON.stringify(body)
-    };
-    return fetch(url, options).then(response => response.json());
-  }
-
-  sync() {
-    const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
-    const token = JSON.parse(tokenJson);
-
-    if (!token) {
-      return Promise.resolve();
-    }
-
-    const syncer = `${this.clientUrl}/sync?full_state=true&access_token=${token.access_token}`;
-    return fetch(syncer).then(response => response.json());
-  }
-
-  getRoomState(room_id) {
-    const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
-    const token = JSON.parse(tokenJson);
-
-    if (!token) {
-      return Promise.resolve();
-    }
-
-    const syncer = `${this.clientUrl}/rooms/${room_id}/state?access_token=${token.access_token}`;
-    return fetch(syncer).then(response => response.json());
-  }
-
-  syncRoom(room_id, from = '') {
-    const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
-
-    if (!token) {
-      return Promise.reject('No access token found.');
-    }
-
-    const syncer = `${this.clientUrl}/rooms/${room_id}/messages?dir=b&room_id=${room_id}&access_token=${token.access_token}&from=${from}`;
-    return fetch(syncer).then(response => response.json());
-  }
-
-  syncRoomHistory(room, from, callback = null) {
-    this.syncRoom(room, from).then(chunk => {
-      chunk.chunk && callback && chunk.chunk.forEach(callback);
-      return chunk.chunk.length && this.syncRoomHistory(room, chunk.end, callback);
-    });
-  }
-
-  streamServerEvents(chunkList, room_id, controller) {
-    if (controller && controller.cancelled) {
-      return;
-    }
-
-    if (room_id) {
-      this.listenForRoomEvents(room_id, controller, chunkList.end);
-    } else {
-      this.listenForServerEvents();
-    }
-
-    chunkList.chunk && chunkList.chunk.forEach(event => {
-      const detail = new MatrixEvent();
-
-      if (!event.event_id) {
-        event.event_id = 'local:' + (1 / Math.random()).toString(36);
+      if (!token) {
+        return;
       }
 
-      detail.consume(event);
-      this.dispatchEvent(new CustomEvent('matrix-event', {
-        detail
-      }));
-      this.dispatchEvent(new CustomEvent(detail.type, {
-        detail
-      }));
-    });
-  }
-
-  getCurrentUserId() {
-    const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
-    const token = JSON.parse(tokenJson);
-
-    if (!token) {
-      return;
+      var url = "".concat(this.mediaUrl, "/upload?access_token=").concat(token.access_token);
+      var headers = new Headers({
+        'Content-Type': body.type
+      });
+      var method = 'POST';
+      var options = {
+        method: method,
+        headers: headers,
+        body: body
+      };
+      return fetch(url, options).then(function (response) {
+        return response.json();
+      });
     }
+  }, {
+    key: "putEvent",
+    value: function putEvent(roomId, type, body) {
+      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var token = JSON.parse(tokenJson);
 
-    return token.user_id;
-  }
+      if (!token) {
+        return;
+      }
 
-  createRoom(name, topic, visibility, initial_state = {}) {
-    const body = JSON.stringify({
-      name,
-      topic,
-      visibility,
-      initial_state
-    });
-    const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
-
-    if (!token) {
-      return Promise.resolve();
+      var url = "".concat(this.clientUrl, "/rooms/").concat(roomId, "/send/").concat(type, "/").concat(Math.random().toString(36), "?access_token=").concat(token.access_token);
+      var headers = new Headers({
+        'Content-Type': body.type
+      });
+      var method = 'PUT';
+      var options = {
+        method: method,
+        headers: headers,
+        body: JSON.stringify(body)
+      };
+      return fetch(url, options).then(function (response) {
+        return response.json();
+      });
     }
+  }, {
+    key: "sync",
+    value: function sync() {
+      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var token = JSON.parse(tokenJson);
 
-    const url = `${this.clientUrl}/createRoom?access_token=${token.access_token}`;
-    const method = 'POST';
-    return fetch(url, {
-      body,
-      method
-    }).then(response => response.json());
-  }
+      if (!token) {
+        return Promise.resolve();
+      }
 
-  joinRoom(room_id) {
-    const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
-
-    if (!token) {
-      return Promise.reject('No access token found.');
+      var syncer = "".concat(this.clientUrl, "/sync?full_state=true&access_token=").concat(token.access_token);
+      return fetch(syncer).then(function (response) {
+        return response.json();
+      });
     }
+  }, {
+    key: "getRoomState",
+    value: function getRoomState(room_id) {
+      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var token = JSON.parse(tokenJson);
 
-    fetch(`${this.clientUrl}/rooms/${room_id}/join?access_token=${token.access_token}`, {
-      method: 'POST'
-    }).then(response => response.json());
-  }
+      if (!token) {
+        return Promise.resolve();
+      }
 
-}
+      var syncer = "".concat(this.clientUrl, "/rooms/").concat(room_id, "/state?access_token=").concat(token.access_token);
+      return fetch(syncer).then(function (response) {
+        return response.json();
+      });
+    }
+  }, {
+    key: "syncRoom",
+    value: function syncRoom(room_id) {
+      var from = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+
+      if (!token) {
+        return Promise.reject('No access token found.');
+      }
+
+      var syncer = "".concat(this.clientUrl, "/rooms/").concat(room_id, "/messages?dir=b&room_id=").concat(room_id, "&access_token=").concat(token.access_token, "&from=").concat(from);
+      return fetch(syncer).then(function (response) {
+        return response.json();
+      });
+    }
+  }, {
+    key: "syncRoomHistory",
+    value: function syncRoomHistory(room, from) {
+      var _this5 = this;
+
+      var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+      this.syncRoom(room, from).then(function (chunk) {
+        chunk.chunk && callback && chunk.chunk.forEach(callback);
+        return chunk.chunk.length && _this5.syncRoomHistory(room, chunk.end, callback);
+      });
+    }
+  }, {
+    key: "streamServerEvents",
+    value: function streamServerEvents(chunkList, room_id, controller) {
+      var _this6 = this;
+
+      if (controller && controller.cancelled) {
+        return;
+      }
+
+      if (room_id) {
+        this.listenForRoomEvents(room_id, controller, chunkList.end);
+      } else {
+        this.listenForServerEvents();
+      }
+
+      chunkList.chunk && chunkList.chunk.forEach(function (event) {
+        var detail = new MatrixEvent();
+
+        if (!event.event_id) {
+          event.event_id = 'local:' + (1 / Math.random()).toString(36);
+        }
+
+        detail.consume(event);
+
+        _this6.dispatchEvent(new CustomEvent('matrix-event', {
+          detail: detail
+        }));
+
+        _this6.dispatchEvent(new CustomEvent(detail.type, {
+          detail: detail
+        }));
+      });
+    }
+  }, {
+    key: "getCurrentUserId",
+    value: function getCurrentUserId() {
+      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var token = JSON.parse(tokenJson);
+
+      if (!token) {
+        return;
+      }
+
+      return token.user_id;
+    }
+  }, {
+    key: "createRoom",
+    value: function createRoom(name, topic, visibility) {
+      var initial_state = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+      var body = JSON.stringify({
+        name: name,
+        topic: topic,
+        visibility: visibility,
+        initial_state: initial_state
+      });
+      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+
+      if (!token) {
+        return Promise.resolve();
+      }
+
+      var url = "".concat(this.clientUrl, "/createRoom?access_token=").concat(token.access_token);
+      var method = 'POST';
+      return fetch(url, {
+        body: body,
+        method: method
+      }).then(function (response) {
+        return response.json();
+      });
+    }
+  }, {
+    key: "joinRoom",
+    value: function joinRoom(room_id) {
+      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+
+      if (!token) {
+        return Promise.reject('No access token found.');
+      }
+
+      fetch("".concat(this.clientUrl, "/rooms/").concat(room_id, "/join?access_token=").concat(token.access_token), {
+        method: 'POST'
+      }).then(function (response) {
+        return response.json();
+      });
+    }
+  }]);
+
+  return Matrix;
+}(_Mixin.Mixin["with"](_EventTargetMixin.EventTargetMixin));
+
+exports.Matrix = Matrix;

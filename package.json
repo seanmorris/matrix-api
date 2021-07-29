@@ -3,17 +3,19 @@
   "description": "Basic Matrix API lib",
   "main":"Matrix.js",
   "author": "Sean Morris",
-  "version": "0.0.0a",
-  "repository": "",
+  "version": "0.0.0-b",
+  "repository": "https://github.com/seanmorris/matrix-api",
   "scripts": {
     "start": "brunch watch --server",
     "build": "brunch build --production"
   },
-  "dependencies": {
+  "devDependencies": {
     "@babel/cli": "^7.13.14",
     "@babel/core": "^7.13.14",
     "@babel/plugin-proposal-class-properties": "^7.13.0",
-    "@babel/preset-env": "^7.13.12",
+    "@babel/preset-env": "^7.13.12"
+  },
+  "dependencies": {
     "curvature": "^0.0.66-n"
   },
   "files": [
