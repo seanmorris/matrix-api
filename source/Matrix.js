@@ -3,23 +3,49 @@ import { EventTargetMixin } from 'curvature/mixin/EventTargetMixin';
 
 export class Matrix extends Mixin.with(EventTargetMixin)
 {
-	constructor()
+	constructor(baseUrl)
 	{
 		super();
 
-		this.baseUrl   = 'https://matrix.org/_matrix';
+		this.baseUrl   = baseUrl || 'https://matrix.org/_matrix';
 		this.clientUrl = `${this.baseUrl}/client/r0`;
 		this.mediaUrl  = `${this.baseUrl}/media/r0`;
 
-		this.mediaCache = new Map();
 		this.profileCache = new Map();
+		this.mediaCache   = new Map();
 	}
 
-	initSso(redirectUri)
+	get isLoggedIn()
+	{
+		if(sessionStorage.getItem('matrix:access-token'))
+		{
+			this.dispatchEvent(new CustomEvent('logged-in'));
+		}
+
+		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+
+		const token = JSON.parse(tokenJson);
+
+		return sessionStorage.getItem('matrix:access-token');
+	}
+
+	initSso(redirectUri, windowRef = window)
 	{
 		const path = 'login/sso/redirect?redirectUrl=' + redirectUri;
 
-		const ssoPopup = window.open(`${this.clientUrl}/${path}`);
+		const width  = 400;
+		const height = 600;
+
+		const left = window.screenX + (window.outerWidth / 2)  + (width / 2);
+		const top  = window.screenY + (window.outerHeight / 2) - (height / 2);
+
+		const options = `width=${width},height=${height},screenX=${left},screenY=${top}`;
+
+		const ssoPopup = windowRef.open(
+			`${this.clientUrl}/${path}`
+			, 'matrix-login'
+			, options
+		);
 
 		const ssoListener = event => {
 			if(event.origin !== location.origin)
@@ -36,10 +62,10 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 			sessionStorage.setItem('matrix:access-token', JSON.stringify(request.data));
 
-			this.dispatchEvent(new CustomEvent('login'));
+			this.dispatchEvent(new CustomEvent('logged-in'));
 		};
 
-		window.addEventListener('message', ssoListener);
+		windowRef.addEventListener('message', ssoListener);
 	}
 
 	completeSso(loginToken)
@@ -252,12 +278,36 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 		const url = `${this.clientUrl}/rooms/${roomId}/send/${type}/${Math.random().toString(36)}?access_token=${token.access_token}`;
 
 		const headers = new Headers({
-			'Content-Type': body.type
+			'Content-Type': 'application/json'
 		});
 
 		const method = 'PUT';
 
 		const options = {method, headers, body: JSON.stringify(body)};
+
+		return fetch(url, options).then(response => response.json());
+	}
+
+	getEvent(roomId, eventId)
+	{
+		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+
+		const token = JSON.parse(tokenJson);
+
+		if(!token)
+		{
+			return;
+		}
+
+		const url = `${this.clientUrl}/rooms/${roomId}/event/${eventId}?access_token=${token.access_token}`;
+
+		const headers = new Headers({
+			'Content-Type': 'application/json'
+		});
+
+		const method = 'GET';
+
+		const options = {method, headers};
 
 		return fetch(url, options).then(response => response.json());
 	}
@@ -311,8 +361,13 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 	syncRoomHistory(room, from, callback = null)
 	{
 		this.syncRoom(room, from).then(chunk => {
+
 			chunk.chunk && callback && chunk.chunk.forEach(callback);
+
+			// localStorage.setItem('matrix-api::room-lowWater::' + room, chunk.end);
+
 			return chunk.chunk.length && this.syncRoomHistory(room, chunk.end, callback);
+
 		});
 	}
 
@@ -391,5 +446,30 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 		fetch(`${this.clientUrl}/rooms/${room_id}/join?access_token=${token.access_token}`, {method:'POST'})
 		.then(response => response.json());
+	}
+
+	leaveRoom(room_id)
+	{
+		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+
+		if(!token)
+		{
+			return Promise.reject('No access token found.');
+		}
+
+		fetch(`${this.clientUrl}/rooms/${room_id}/leave?access_token=${token.access_token}`, {method:'POST'})
+		.then(response => response.json());
+	}
+
+	whoAmI()
+	{
+		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+
+		if(!token)
+		{
+			return Promise.reject('No access token found.');
+		}
+
+		return fetch(`${this.clientUrl}/account/whoami?access_token=${token.access_token}`).then(response => response.json());
 	}
 }
