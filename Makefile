@@ -1,15 +1,24 @@
-.PHONY: all package dist dependencies clean
+#!/usr/bin/env make
 
-all: npm dist
+SHELL=bash -euxo pipefail
+
+.PHONY: all package dependencies clean
+
+
+all: dist/matrix-api.js dist/matrix-api.standalone.js package
 
 package:
-	NODE_ENV=prod npx babel source/Matrix.js --no-comments --out-file Matrix.js
+	NODE_ENV=prod npx babel source/Matrix.js --no-comments --out-file Matrix.js;
 
-dist:
-	brunch b -p
+dist/matrix-api.js: source/Matrix.js
+	brunch b -p;
+
+dist/matrix-api.standalone.js: source/ dist/matrix-api.js
+	cat dist/matrix-api.js >> dist/vendor.js
+	mv dist/vendor.js dist/matrix-api.standalone.js
 
 dependencies:
 	npm install
 
 clean:
-	rm -f Matrix.js dist/matrix-api.js dist/matrix-api.standalone.js
+	rm -f Matrix.js dist/matrix-api.js dist/matrix-api.standalone.js dist/vendor.js

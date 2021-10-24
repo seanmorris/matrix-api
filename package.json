@@ -3,12 +3,8 @@
   "description": "Matrix API library for the frontend.",
   "license": "Apache-2.0",
   "author": "Sean Morris",
-  "version": "0.0.0-e",
+  "version": "0.0.0-f",
   "repository": "https://github.com/seanmorris/matrix-api",
-  "scripts": {
-    "start": "brunch watch --server",
-    "build": "brunch build --production"
-  },
   "devDependencies": {
     "@babel/cli": "^7.13.14",
     "@babel/core": "^7.13.14",
@@ -24,12 +20,11 @@
     "uglify-es-brunch": "^1"
   },
   "dependencies": {
-    "curvature": "^0.0.66-p"
+    "curvature": "^0.0.66-q"
   },
   "files": [
     "Matrix.js",
     "dist/matrix-api.js",
-    "dist/matrix-api.min.js",
     "dist/matrix-api.standalone.js"
   ]
 }

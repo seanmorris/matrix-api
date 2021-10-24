@@ -1,7 +1,7 @@
 exports.files = {
 	javascripts: {joinTo:{
 		'vendor.js': /^(?!source)/,
-		'matrix.js': /^source/
+		'matrix-api.js': /^source/
 	}}
 };
 
@@ -10,5 +10,5 @@ exports.paths = {
 };
 
 exports.modules = {
-	nameCleaner: path => path.replace(/^source(?:-docs)?\//, 'matrix-api/')
+	nameCleaner: path => path.replace(/^source\//, 'matrix-api/')
 }

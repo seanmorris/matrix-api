@@ -1,16 +1,8 @@
 {
-	plugins:   ["@babel/plugin-proposal-class-properties", "@babel/plugin-transform-modules-commonjs"]
+	plugins:   ["@babel/plugin-proposal-class-properties"]
 	, presets: [
 		['@babel/preset-env', {
 			"exclude": ['@babel/plugin-transform-new-target']
 		}]
 	]
-	, "env": {
-		"prod": {}
-		, "prod-min": {
-			presets: [
-				['minify', {"builtIns": false}]
-			]
-		}
-	}
 }
