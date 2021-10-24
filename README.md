@@ -484,7 +484,6 @@ Sync the event history of a given room, starting from a given chunk id and movin
 
 Normal chat messages must be formatted as such when sending to the server:
 
-
 ```javascript
 const roomId  = 'ROOM_ID_HERE';
 const body    = {
