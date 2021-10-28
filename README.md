@@ -139,6 +139,9 @@ matrix.initSso(redirectUrl);
 matrix.addEventListener('logged-in', event => {
 
 	console.log('Logged in!', event);
+	
+	// Start polling the server
+	matrix.listenForServerEvents();
 
 	// Act on events of only one type:
 	matrix.addEventListener('m.room.message', event => console.log('Message:', event));
