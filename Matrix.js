@@ -210,8 +210,8 @@ var Matrix = function (_Mixin$with) {
   }, {
     key: "getUserProfile",
     value: function getUserProfile(userId) {
-      if (this.profileCache.has(userId, getProfile)) {
-        return this.profileCache.get(userId, getProfile);
+      if (this.profileCache.has(userId)) {
+        return this.profileCache.get(userId);
       }
 
       var getProfile = fetch("".concat(this.clientUrl, "/profile/").concat(userId)).then(function (response) {
@@ -429,13 +429,13 @@ var Matrix = function (_Mixin$with) {
       }
 
       chunkList.chunk && chunkList.chunk.forEach(function (event) {
-        var detail = new MatrixEvent();
+        var detail = {};
 
         if (!event.event_id) {
           event.event_id = 'local:' + (1 / Math.random()).toString(36);
         }
 
-        detail.consume(event);
+        Object.assign(detail, event);
 
         _this6.dispatchEvent(new CustomEvent('matrix-event', {
           detail: detail

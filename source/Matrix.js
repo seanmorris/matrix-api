@@ -168,9 +168,9 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 	getUserProfile(userId)
 	{
-		if(this.profileCache.has(userId, getProfile))
+		if(this.profileCache.has(userId))
 		{
-			return this.profileCache.get(userId, getProfile);
+			return this.profileCache.get(userId);
 		}
 
 		const getProfile = fetch(`${this.clientUrl}/profile/${userId}`).then(response=>response.json());
@@ -389,14 +389,14 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 		chunkList.chunk && chunkList.chunk.forEach(event => {
 
-			const detail = new MatrixEvent;
+			const detail = {};
 
 			if(!event.event_id)
 			{
 				event.event_id = 'local:' + (1/Math.random()).toString(36)
 			}
 
-			detail.consume(event);
+			Object.assign(detail, event);
 
 			this.dispatchEvent(new CustomEvent('matrix-event', {detail}));
 			this.dispatchEvent(new CustomEvent(detail.type, {detail}));
