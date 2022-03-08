@@ -8,8 +8,6 @@
 
 Matrix API. 100% frontend.
 
-Try it: https://curvature.seanmorr.is/matrix-api
-
 ## Issue Tracker
 
 Please report any and all bugs to [the GitHub issue tracker](https://github.com/seanmorris/matrix-api/issues).
@@ -141,8 +139,8 @@ matrix.initSso(redirectUrl);
 matrix.addEventListener('logged-in', event => {
 
 	console.log('Logged in!', event);
-
-	// Poll the server for events
+	
+	// Start polling the server
 	matrix.listenForServerEvents();
 
 	// Act on events of only one type:
