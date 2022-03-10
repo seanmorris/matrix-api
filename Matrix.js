@@ -92,6 +92,14 @@ var Matrix = function (_Mixin$with) {
           return;
         }
 
+        if (event.source === window) {
+          return;
+        }
+
+        if (typeof event.data !== 'string') {
+          return;
+        }
+
         var request = JSON.parse(event.data);
 
         if (request.type !== 's.sso.complete') {
@@ -408,9 +416,26 @@ var Matrix = function (_Mixin$with) {
       var _this5 = this;
 
       var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-      this.syncRoom(room, from).then(function (chunk) {
-        chunk.chunk && callback && chunk.chunk.forEach(callback);
-        return chunk.chunk.length && _this5.syncRoomHistory(room, chunk.end, callback);
+      return this.syncRoom(room, from).then(function (frame) {
+        var cancelable = true;
+        var detail = {
+          frame: frame
+        };
+        var event = new CustomEvent('roomSyncFrame', {
+          detail: detail,
+          cancelable: cancelable
+        });
+
+        if (!_this5.dispatchEvent(event)) {
+          return;
+        }
+
+        frame.chunk && callback && frame.chunk.forEach(callback);
+        return new Promise(function (accept) {
+          setTimeout(function () {
+            return accept(frame.chunk.length && _this5.syncRoomHistory(room, frame.end, callback));
+          }, 100);
+        });
       });
     }
   }, {

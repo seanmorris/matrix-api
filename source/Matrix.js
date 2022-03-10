@@ -53,6 +53,16 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 				return;
 			}
 
+			if(event.source === window)
+			{
+				return;
+			}
+
+			if(typeof event.data !== 'string')
+			{
+				return;
+			}
+
 			const request = JSON.parse(event.data);
 
 			if(request.type !== 's.sso.complete')
@@ -360,13 +370,25 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 	syncRoomHistory(room, from, callback = null)
 	{
-		this.syncRoom(room, from).then(chunk => {
+		return this.syncRoom(room, from).then(frame => {
+			const cancelable = true;
+			const detail     = {frame};
 
-			chunk.chunk && callback && chunk.chunk.forEach(callback);
+			const event = new CustomEvent('roomSyncFrame', {detail, cancelable});
 
-			// localStorage.setItem('matrix-api::room-lowWater::' + room, chunk.end);
+			if(!this.dispatchEvent(event))
+			{
+				return;
+			}
 
-			return chunk.chunk.length && this.syncRoomHistory(room, chunk.end, callback);
+			frame.chunk && callback && frame.chunk.forEach(callback);
+
+			return new Promise(accept => {
+				setTimeout(
+					() => accept(frame.chunk.length && this.syncRoomHistory(room, frame.end, callback))
+					, 100
+				);
+			});
 
 		});
 	}
