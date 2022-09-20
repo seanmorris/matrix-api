@@ -46,14 +46,14 @@ If npm isn't an option, `matrix-api` can be included from a CDN.
 You can include both the `matrix-api` and its dependency, the `curvature` library with the following script tags:
 
 ```html
-<script src = "https://unpkg.com/curvature@0.0.66-q/dist/curvature.js"></script>
-<script src = "https://unpkg.com/matrix-api@0.0.0-f/dist/matrix-api.js"></script>
+<script src = "https://unpkg.com/curvature/dist/curvature.js"></script>
+<script src = "https://unpkg.com/matrix-api/dist/matrix-api.js"></script>
 ```
 
 You can also include only the parts of `curvature` needed to run `matrix api` with `matrix-api.standalone.js`:
 
 ```html
-<script src = "https://unpkg.com/matrix-api@0.0.0-f/dist/matrix-api.standalone.js"></script>
+<script src = "https://unpkg.com/matrix-api/dist/matrix-api.standalone.js"></script>
 ```
 
 Then `require` the module in your javascript:
