@@ -170,7 +170,43 @@ matrix.joinRoom(roomId)
 .catch(error => console.error(error));
 ```
 
-### Step 4: Send a Message
+### Step 4: Listen for Events
+
+The matrix object is an event target, meaning you can listen for events. Listen for the matrix-event type to get all messages:
+
+matrix.addEventListener('matrix-event', event => console.log(event.detail.type, event));
+
+You can also provide an event type to only grab messages of a certain type:
+
+```javascript
+
+matrix.addEventListener('m.room.message', event => console.log(event.detail.type, event));
+matrix.addEventListener('app.custom.type', event => console.log(event.detail.type, event));
+```
+
+### Step 4a: Sync the room history:
+
+You can also look for events in the past, optionally within a window of time.
+
+* roomId - The id of the room in question
+* callback - Callback to run on each message.
+* to - Stop the sync if a message older than this date is found.
+* from - Chunk id to resume the sync from.
+* filter - Matrix filter. JSON format.
+
+Example:
+
+```javascript
+const sync = matrix.syncRoomHistory(
+	this.args.roomId
+	, message => console.log(message)
+	, Date.now() - (7 * 24 * 60 * 60 * 1000)
+	, null
+	, { types: ['message.type.one', 'message.type.two', 'message.type.three'] }
+);
+```
+
+### Step 5: Send a Message
 
 Once you've joined one or more rooms, you can send messages to them:
 
@@ -191,14 +227,17 @@ matrix.putEvent(roomId, evttype, message)
 
 ## Methods
 
-### `new Matrix(baseUrl)`
+### `new Matrix(baseUrl, options)`
 
 Create a new connection to a Matrix server.
 
 * baseUrl - The endpoint of the Matrix server.
+* options - An object with the following keys to set options for the session
+    * interval - Length of pause time between sync requests. Defaults to `false`, equivalent to `0`.
+    * storage - Object that implements the StorageApi. Defaults to `globalThis.sessionStorage`
 
 ```javascript
-const matrix = new Matrix(baseUrl);
+const matrix = new Matrix(baseUrl, {interval, storage});
 ```
 
 ### matrix.initSso(redirectUri, windowRef = window)
@@ -454,19 +493,15 @@ matrix.listenForServerEvents();
 matrix.addEventListener('matrix-event', event => console.log('Event:', event));
 ```
 
-### matrix.sync()
-
-*To be documented.*
-
-### matrix.syncRoomHistory(room, from, callback = null)
-
-**Internal Method**
+### matrix.syncRoomHistory(room, callback = null, to = false, from = null, filter = null)
 
 Sync the event history of a given room, starting from a given chunk id and moving backward.
 
 * roomId - The id of the room in question
-* from - Chunk id to resume the sync from
 * callback - Callback to run on each chunk.
+* to - Stop the sync if a message older than this date is found.
+* from - Chunk id to resume the sync from
+* filter - Matrix filter. JSON format. Example: `{"types": ["m.room.message"]}` or for custom types: `{"types": ["message.type.one", "message.type.two"]}`
 
 ### matrix.syncRoom(room_id, from = '')
 
