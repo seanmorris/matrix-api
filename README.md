@@ -176,7 +176,7 @@ The matrix object is an event target, meaning you can listen for events. Listen 
 
 matrix.addEventListener('matrix-event', event => console.log(event.detail.type, event));
 
-You can also provide an event type to only grab messages of a certain type:
+You can also provide an event type to only grab messages of a certain type. Types here map to the second parameter of `matrix.putEvent`.
 
 ```javascript
 
@@ -192,7 +192,7 @@ You can also look for events in the past, optionally within a window of time.
 * callback - Callback to run on each message.
 * to - Stop the sync if a message older than this date is found.
 * from - Chunk id to resume the sync from.
-* filter - Matrix filter. JSON format.
+* filter - Matrix filter. JSON format. Types here map to the second parameter of `matrix.putEvent`.
 
 Example:
 

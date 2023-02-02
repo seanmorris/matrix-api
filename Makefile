@@ -18,7 +18,7 @@ dist/matrix-api.standalone.js: source/ dist/matrix-api.js
 	mv dist/vendor.js dist/matrix-api.standalone.js
 
 dependencies:
-	mv mode_nodules node_modules
+	mv mode_nodules node_modules || true
 
 clean:
 	rm -f Matrix.js dist/matrix-api.js dist/matrix-api.standalone.js dist/vendor.js
