@@ -1,15 +1,19 @@
 "use strict";
 
-function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.Matrix = void 0;
 
+var _Uuid = require("curvature/base/Uuid");
+
 var _Mixin = require("curvature/base/Mixin");
 
 var _EventTargetMixin = require("curvature/mixin/EventTargetMixin");
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e2) { throw _e2; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e3) { didErr = true; err = _e3; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
@@ -27,11 +31,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
 
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
@@ -41,7 +45,9 @@ function _assertThisInitialized(self) { if (self === void 0) { throw new Referen
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var Matrix = function (_Mixin$with) {
   _inherits(Matrix, _Mixin$with);
@@ -49,29 +55,42 @@ var Matrix = function (_Mixin$with) {
   var _super = _createSuper(Matrix);
 
   function Matrix(baseUrl) {
+    var _options$storage, _options$interval;
+
     var _this;
+
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
     _classCallCheck(this, Matrix);
 
     _this = _super.call(this);
+
+    _defineProperty(_assertThisInitialized(_this), "ssoUuid", String(new _Uuid.Uuid()));
+
+    _defineProperty(_assertThisInitialized(_this), "isLoggedIn", false);
+
+    _defineProperty(_assertThisInitialized(_this), "loggingIn", null);
+
     _this.baseUrl = baseUrl || 'https://matrix.org/_matrix';
-    _this.clientUrl = "".concat(_this.baseUrl, "/client/r0");
-    _this.mediaUrl = "".concat(_this.baseUrl, "/media/r0");
+    _this.clientUrl = "".concat(_this.baseUrl, "/client/v3");
+    _this.mediaUrl = "".concat(_this.baseUrl, "/media/v3");
     _this.profileCache = new Map();
     _this.mediaCache = new Map();
+    _this.storage = (_options$storage = options.storage) !== null && _options$storage !== void 0 ? _options$storage : globalThis.sessionStorage;
+    _this.interval = (_options$interval = options.interval) !== null && _options$interval !== void 0 ? _options$interval : false;
     return _this;
   }
 
   _createClass(Matrix, [{
     key: "isLoggedIn",
     get: function get() {
-      if (sessionStorage.getItem('matrix:access-token')) {
+      if (this.isLoggedIn) {
         this.dispatchEvent(new CustomEvent('logged-in'));
       }
 
-      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var tokenJson = this.storage.getItem('matrix:access-token') || 'false';
       var token = JSON.parse(tokenJson);
-      return sessionStorage.getItem('matrix:access-token');
+      return this.storage.getItem('matrix:access-token');
     }
   }, {
     key: "initSso",
@@ -79,13 +98,23 @@ var Matrix = function (_Mixin$with) {
       var _this2 = this;
 
       var windowRef = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : window;
-      var path = 'login/sso/redirect?redirectUrl=' + redirectUri;
+
+      if (this.storage.getItem('matrix:access-token')) {
+        this.isLoggedIn = true;
+        this.dispatchEvent(new CustomEvent('logged-in'));
+        return;
+      }
+
+      var query = new URLSearchParams({
+        redirectUrl: redirectUri
+      });
+      var path = "login/sso/redirect?".concat(query);
       var width = 400;
       var height = 600;
       var left = window.screenX + window.outerWidth / 2 + width / 2;
       var top = window.screenY + window.outerHeight / 2 - height / 2;
       var options = "width=".concat(width, ",height=").concat(height, ",screenX=").concat(left, ",screenY=").concat(top);
-      var ssoPopup = windowRef.open("".concat(this.clientUrl, "/").concat(path), 'matrix-login', options);
+      var ssoPopup = windowRef.open("".concat(this.clientUrl, "/").concat(path), "matrix-login-".concat(this.ssoUuid), options);
 
       var ssoListener = function ssoListener(event) {
         if (event.origin !== location.origin) {
@@ -106,9 +135,13 @@ var Matrix = function (_Mixin$with) {
           return;
         }
 
-        sessionStorage.setItem('matrix:access-token', JSON.stringify(request.data));
+        _this2.storage.setItem('matrix:access-token', JSON.stringify(request.data));
+
+        _this2.isLoggedIn = true;
 
         _this2.dispatchEvent(new CustomEvent('logged-in'));
+
+        windowRef.removeEventListener('message', ssoListener);
       };
 
       windowRef.addEventListener('message', ssoListener);
@@ -136,16 +169,51 @@ var Matrix = function (_Mixin$with) {
       });
     }
   }, {
+    key: "logIn",
+    value: function logIn(redirectUri) {
+      var _this3 = this;
+
+      var windowRef = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : window;
+
+      if (!this.loggingIn) {
+        this.loggingIn = new Promise(function (accept) {
+          _this3.loggingIn = null;
+
+          _this3.addEventListener('logged-in', function (event) {
+            accept(event);
+          }, {
+            once: true
+          });
+        });
+      }
+
+      this.initSso(redirectUri, windowRef);
+      return this.loggingIn;
+    }
+  }, {
+    key: "logOut",
+    value: function logOut() {
+      this.storage.removeItem('matrix:access-token');
+      this.isLoggedIn = false;
+      this.loggingIn = null;
+      this.dispatchEvent(new CustomEvent('logged-out'));
+    }
+  }, {
     key: "getGuestToken",
     value: function getGuestToken() {
-      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var _this4 = this;
+
+      var tokenJson = this.storage.getItem('matrix:access-token') || 'false';
       var token = JSON.parse(tokenJson);
 
       if (token && token.isGuest) {
         return Promise.resolve(token);
       }
 
-      var getToken = fetch("".concat(this.clientUrl, "/register?kind=guest"), {
+      var query = new URLSearchParams({
+        kind: 'guest'
+      });
+      var getToken = fetch("".concat(this.clientUrl, "/register?").concat(query), {
         method: 'POST',
         body: '{}'
       }).then(function (response) {
@@ -153,14 +221,16 @@ var Matrix = function (_Mixin$with) {
       });
       getToken.then(function (token) {
         token.isGuest = true;
-        sessionStorage.setItem('matrix:access-token', JSON.stringify(token));
+        _this4.isLoggedIn = true;
+
+        _this4.storage.setItem('matrix:access-token', JSON.stringify(token));
       });
       return getToken;
     }
   }, {
     key: "getToken",
     value: function getToken() {
-      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var tokenJson = this.storage.getItem('matrix:access-token') || 'false';
       var token = JSON.parse(tokenJson);
 
       if (token) {
@@ -172,25 +242,28 @@ var Matrix = function (_Mixin$with) {
   }, {
     key: "listenForServerEvents",
     value: function listenForServerEvents() {
-      var _this3 = this;
+      var _this5 = this;
 
-      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+      var token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
       if (!token) {
         return Promise.reject('No access token found.');
       }
 
-      var listener = "".concat(this.clientUrl, "/events?access_token=").concat(token.access_token);
+      var query = new URLSearchParams({
+        access_token: token.access_token
+      });
+      var listener = "".concat(this.clientUrl, "/events?").concat(query);
       fetch(listener).then(function (response) {
         return response.json();
       }).then(function (response) {
-        return _this3.streamServerEvents(response);
+        return _this5.streamServerEvents(response);
       });
     }
   }, {
     key: "listenForRoomEvents",
     value: function listenForRoomEvents(room_id, controller) {
-      var _this4 = this;
+      var _this6 = this;
 
       var from = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
 
@@ -198,22 +271,70 @@ var Matrix = function (_Mixin$with) {
         return;
       }
 
-      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+      var token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
       if (!token) {
         return Promise.reject('No access token found.');
       }
 
-      var listener = "".concat(this.clientUrl, "/events?room_id=").concat(room_id, "&access_token=").concat(token.access_token, "&from=").concat(from);
+      var query = new URLSearchParams({
+        access_token: token.access_token,
+        room_id: room_id,
+        from: from
+      });
+      var listener = "".concat(this.clientUrl, "/events?").concat(query);
       controller = controller || {
         cancelled: false
       };
       fetch(listener).then(function (response) {
         return response.json();
       }).then(function (response) {
-        return _this4.streamServerEvents(response, room_id, controller);
+        return _this6.streamServerEvents(response, room_id, controller);
       });
       return controller;
+    }
+  }, {
+    key: "streamServerEvents",
+    value: function streamServerEvents(chunkList, room_id, controller) {
+      var _this7 = this;
+
+      if (controller && controller.cancelled) {
+        return;
+      }
+
+      if (!this.interval) {
+        if (room_id) {
+          this.listenForRoomEvents(room_id, controller, chunkList.end);
+        } else {
+          this.listenForServerEvents();
+        }
+      } else {
+        setTimeout(function () {
+          if (room_id) {
+            _this7.listenForRoomEvents(room_id, controller, chunkList.end);
+          } else {
+            _this7.listenForServerEvents();
+          }
+        }, this.interval);
+      }
+
+      chunkList.chunk && chunkList.chunk.forEach(function (event) {
+        var detail = {};
+
+        if (!event.event_id) {
+          event.event_id = "local:".concat(new _Uuid.Uuid());
+        }
+
+        Object.assign(detail, event);
+
+        _this7.dispatchEvent(new CustomEvent('matrix-event', {
+          detail: detail
+        }));
+
+        _this7.dispatchEvent(new CustomEvent(detail.type, {
+          detail: detail
+        }));
+      });
     }
   }, {
     key: "getUserProfile",
@@ -231,26 +352,32 @@ var Matrix = function (_Mixin$with) {
   }, {
     key: "getUserData",
     value: function getUserData(type) {
-      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+      var token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
       if (!token) {
         return Promise.reject('No access token found.');
       }
 
-      return fetch("".concat(this.clientUrl, "/user/").concat(token.user_id, "/account_data/").concat(type, "?access_token=").concat(token.access_token)).then(function (response) {
+      var query = new URLSearchParams({
+        access_token: token.access_token
+      });
+      return fetch("".concat(this.clientUrl, "/user/").concat(token.user_id, "/account_data/").concat(type, "?").concat(query)).then(function (response) {
         return response.json();
       });
     }
   }, {
     key: "putUserData",
     value: function putUserData(type, body) {
-      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+      var token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
       if (!token) {
         return;
       }
 
-      var endpoint = "".concat(this.clientUrl, "/user/").concat(token.user_id, "/account_data/").concat(type, "?access_token=").concat(token.access_token);
+      var query = new URLSearchParams({
+        access_token: token.access_token
+      });
+      var endpoint = "".concat(this.clientUrl, "/user/").concat(token.user_id, "/account_data/").concat(type, "?").concat(query);
       return fetch(endpoint, {
         method: 'PUT',
         body: body
@@ -297,14 +424,17 @@ var Matrix = function (_Mixin$with) {
   }, {
     key: "postMedia",
     value: function postMedia(body, filename) {
-      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var tokenJson = this.storage.getItem('matrix:access-token') || 'false';
       var token = JSON.parse(tokenJson);
 
       if (!token) {
         return;
       }
 
-      var url = "".concat(this.mediaUrl, "/upload?access_token=").concat(token.access_token);
+      var query = new URLSearchParams({
+        access_token: token.access_token
+      });
+      var url = "".concat(this.mediaUrl, "/upload?").concat(query);
       var headers = new Headers({
         'Content-Type': body.type
       });
@@ -321,23 +451,30 @@ var Matrix = function (_Mixin$with) {
   }, {
     key: "putEvent",
     value: function putEvent(roomId, type, body) {
-      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var tokenJson = this.storage.getItem('matrix:access-token') || 'false';
       var token = JSON.parse(tokenJson);
 
       if (!token) {
         return;
       }
 
-      var url = "".concat(this.clientUrl, "/rooms/").concat(roomId, "/send/").concat(type, "/").concat(Math.random().toString(36), "?access_token=").concat(token.access_token);
+      var query = new URLSearchParams({
+        access_token: token.access_token
+      });
+      var url = "".concat(this.clientUrl, "/rooms/").concat(roomId, "/send/").concat(type, "/").concat(Math.random().toString(36), "?").concat(query);
       var headers = new Headers({
         'Content-Type': 'application/json'
       });
       var method = 'PUT';
-      var options = {
+      var keepalive = true;
+
+      var options = _defineProperty({
         method: method,
         headers: headers,
+        keepalive: keepalive,
         body: JSON.stringify(body)
-      };
+      }, "keepalive", keepalive);
+
       return fetch(url, options).then(function (response) {
         return response.json();
       });
@@ -345,14 +482,17 @@ var Matrix = function (_Mixin$with) {
   }, {
     key: "getEvent",
     value: function getEvent(roomId, eventId) {
-      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var tokenJson = this.storage.getItem('matrix:access-token') || 'false';
       var token = JSON.parse(tokenJson);
 
       if (!token) {
         return;
       }
 
-      var url = "".concat(this.clientUrl, "/rooms/").concat(roomId, "/event/").concat(eventId, "?access_token=").concat(token.access_token);
+      var query = new URLSearchParams({
+        access_token: token.access_token
+      });
+      var url = "".concat(this.clientUrl, "/rooms/").concat(roomId, "/event/").concat(eventId, "?").concat(query);
       var headers = new Headers({
         'Content-Type': 'application/json'
       });
@@ -368,14 +508,18 @@ var Matrix = function (_Mixin$with) {
   }, {
     key: "sync",
     value: function sync() {
-      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var tokenJson = this.storage.getItem('matrix:access-token') || 'false';
       var token = JSON.parse(tokenJson);
 
       if (!token) {
         return Promise.resolve();
       }
 
-      var syncer = "".concat(this.clientUrl, "/sync?full_state=true&access_token=").concat(token.access_token);
+      var query = new URLSearchParams({
+        full_state: true,
+        access_token: token.access_token
+      });
+      var syncer = "".concat(this.clientUrl, "/sync?").concat(query);
       return fetch(syncer).then(function (response) {
         return response.json();
       });
@@ -383,14 +527,17 @@ var Matrix = function (_Mixin$with) {
   }, {
     key: "getRoomState",
     value: function getRoomState(room_id) {
-      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var tokenJson = this.storage.getItem('matrix:access-token') || 'false';
       var token = JSON.parse(tokenJson);
 
       if (!token) {
         return Promise.resolve();
       }
 
-      var syncer = "".concat(this.clientUrl, "/rooms/").concat(room_id, "/state?access_token=").concat(token.access_token);
+      var query = new URLSearchParams({
+        access_token: token.access_token
+      });
+      var syncer = "".concat(this.clientUrl, "/rooms/").concat(room_id, "/state?").concat(query);
       return fetch(syncer).then(function (response) {
         return response.json();
       });
@@ -398,25 +545,59 @@ var Matrix = function (_Mixin$with) {
   }, {
     key: "syncRoom",
     value: function syncRoom(room_id) {
-      var from = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
-      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+      var from = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      var filter = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
+      if (!this.isLoggedIn) {
+        return Promise.reject('Logged out.');
+      }
+
+      var token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
       if (!token) {
         return Promise.reject('No access token found.');
       }
 
-      var syncer = "".concat(this.clientUrl, "/rooms/").concat(room_id, "/messages?dir=b&room_id=").concat(room_id, "&access_token=").concat(token.access_token, "&from=").concat(from);
-      return fetch(syncer).then(function (response) {
+      var query = new URLSearchParams({
+        access_token: token.access_token,
+        room_id: room_id,
+        dir: 'b',
+        from: from ? from : '',
+        filter: filter ? JSON.stringify(filter) : ''
+      });
+      var syncer = "".concat(this.clientUrl, "/rooms/").concat(room_id, "/messages?").concat(query);
+      var controller = new AbortController();
+      var signal = controller.signal;
+
+      var abort = function abort() {
+        return controller.abort();
+      };
+
+      this.addEventListener('logged-out', abort, {
+        once: true
+      });
+      var fetchFrame = fetch(syncer, {
+        signal: signal
+      }).then(function (response) {
         return response.json();
       });
+      fetchFrame["finally"](this.removeEventListener('logged-out', abort));
+      return fetchFrame;
     }
   }, {
     key: "syncRoomHistory",
-    value: function syncRoomHistory(room, from) {
-      var _this5 = this;
+    value: function syncRoomHistory(room) {
+      var _this8 = this;
 
-      var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-      return this.syncRoom(room, from).then(function (frame) {
+      var callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      var to = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+      var from = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+      var filter = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
+      return this.syncRoom(room, from, filter).then(function (frame) {
+        if (!_this8.isLoggedIn) {
+          return Promise.reject('Logged out.');
+        }
+
         var cancelable = true;
         var detail = {
           frame: frame
@@ -426,55 +607,50 @@ var Matrix = function (_Mixin$with) {
           cancelable: cancelable
         });
 
-        if (!_this5.dispatchEvent(event)) {
+        if (!_this8.dispatchEvent(event)) {
           return;
         }
 
-        frame.chunk && callback && frame.chunk.forEach(callback);
-        return new Promise(function (accept) {
-          setTimeout(function () {
-            return accept(frame.chunk.length && _this5.syncRoomHistory(room, frame.end, callback));
-          }, 100);
-        });
-      });
-    }
-  }, {
-    key: "streamServerEvents",
-    value: function streamServerEvents(chunkList, room_id, controller) {
-      var _this6 = this;
+        if (callback && frame.chunk) {
+          var _iterator = _createForOfIteratorHelper(frame.chunk),
+              _step;
 
-      if (controller && controller.cancelled) {
-        return;
-      }
+          try {
+            for (_iterator.s(); !(_step = _iterator.n()).done;) {
+              var message = _step.value;
 
-      if (room_id) {
-        this.listenForRoomEvents(room_id, controller, chunkList.end);
-      } else {
-        this.listenForServerEvents();
-      }
+              if (!_this8.isLoggedIn) {
+                return Promise.reject('Logged out.');
+              }
 
-      chunkList.chunk && chunkList.chunk.forEach(function (event) {
-        var detail = {};
+              if (to && message.origin_server_ts <= to) {
+                return Promise.resolve();
+              }
 
-        if (!event.event_id) {
-          event.event_id = 'local:' + (1 / Math.random()).toString(36);
+              if (callback(message) === false) {
+                return Promise.resolve();
+              }
+            }
+          } catch (err) {
+            _iterator.e(err);
+          } finally {
+            _iterator.f();
+          }
         }
 
-        Object.assign(detail, event);
+        return new Promise(function (accept) {
+          var _this8$interval;
 
-        _this6.dispatchEvent(new CustomEvent('matrix-event', {
-          detail: detail
-        }));
-
-        _this6.dispatchEvent(new CustomEvent(detail.type, {
-          detail: detail
-        }));
+          return setTimeout(function () {
+            return accept(frame.chunk.length && _this8.syncRoomHistory(room, callback, to, frame.end, filter));
+          }, (_this8$interval = _this8.interval) !== null && _this8$interval !== void 0 ? _this8$interval : 0);
+        });
       });
     }
   }, {
     key: "getCurrentUserId",
     value: function getCurrentUserId() {
-      var tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+      var tokenJson = this.storage.getItem('matrix:access-token') || 'false';
       var token = JSON.parse(tokenJson);
 
       if (!token) {
@@ -493,13 +669,16 @@ var Matrix = function (_Mixin$with) {
         visibility: visibility,
         initial_state: initial_state
       });
-      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+      var token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
       if (!token) {
         return Promise.resolve();
       }
 
-      var url = "".concat(this.clientUrl, "/createRoom?access_token=").concat(token.access_token);
+      var query = new URLSearchParams({
+        access_token: token.access_token
+      });
+      var url = "".concat(this.clientUrl, "/createRoom?").concat(query);
       var method = 'POST';
       return fetch(url, {
         body: body,
@@ -511,13 +690,16 @@ var Matrix = function (_Mixin$with) {
   }, {
     key: "joinRoom",
     value: function joinRoom(room_id) {
-      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+      var token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
       if (!token) {
         return Promise.reject('No access token found.');
       }
 
-      fetch("".concat(this.clientUrl, "/rooms/").concat(room_id, "/join?access_token=").concat(token.access_token), {
+      var query = new URLSearchParams({
+        access_token: token.access_token
+      });
+      fetch("".concat(this.clientUrl, "/rooms/").concat(room_id, "/join?").concat(query), {
         method: 'POST'
       }).then(function (response) {
         return response.json();
@@ -526,13 +708,16 @@ var Matrix = function (_Mixin$with) {
   }, {
     key: "leaveRoom",
     value: function leaveRoom(room_id) {
-      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+      var token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
       if (!token) {
         return Promise.reject('No access token found.');
       }
 
-      fetch("".concat(this.clientUrl, "/rooms/").concat(room_id, "/leave?access_token=").concat(token.access_token), {
+      var query = new URLSearchParams({
+        access_token: token.access_token
+      });
+      fetch("".concat(this.clientUrl, "/rooms/").concat(room_id, "/leave?").concat(query), {
         method: 'POST'
       }).then(function (response) {
         return response.json();
@@ -541,13 +726,16 @@ var Matrix = function (_Mixin$with) {
   }, {
     key: "whoAmI",
     value: function whoAmI() {
-      var token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+      var token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
       if (!token) {
         return Promise.reject('No access token found.');
       }
 
-      return fetch("".concat(this.clientUrl, "/account/whoami?access_token=").concat(token.access_token)).then(function (response) {
+      var query = new URLSearchParams({
+        access_token: token.access_token
+      });
+      return fetch("".concat(this.clientUrl, "/account/whoami?").concat(query)).then(function (response) {
         return response.json();
       });
     }

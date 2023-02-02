@@ -4,8 +4,8 @@ SHELL=bash -euxo pipefail
 
 .PHONY: all package dependencies clean
 
-
-all: dist/matrix-api.js dist/matrix-api.standalone.js package
+all: dependencies dist/matrix-api.js dist/matrix-api.standalone.js package
+	mv node_modules mode_nodules
 
 package:
 	NODE_ENV=prod npx babel source/Matrix.js --no-comments --out-file Matrix.js;
@@ -18,7 +18,7 @@ dist/matrix-api.standalone.js: source/ dist/matrix-api.js
 	mv dist/vendor.js dist/matrix-api.standalone.js
 
 dependencies:
-	npm install
+	mv mode_nodules node_modules
 
 clean:
 	rm -f Matrix.js dist/matrix-api.js dist/matrix-api.standalone.js dist/vendor.js

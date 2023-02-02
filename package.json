@@ -12,6 +12,7 @@
     "@babel/preset-env": "^7.13.12",
     "auto-reload-brunch": "^2",
     "babel-brunch": "^7.0.1",
+    "babel-cli": "^6.26.0",
     "babel-minify": "^0.5.1",
     "brunch": "^3",
     "clean-css-brunch": "^3",

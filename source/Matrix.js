@@ -1,37 +1,53 @@
+import { Uuid } from 'curvature/base/Uuid';
 import { Mixin } from 'curvature/base/Mixin';
 import { EventTargetMixin } from 'curvature/mixin/EventTargetMixin';
 
 export class Matrix extends Mixin.with(EventTargetMixin)
 {
-	constructor(baseUrl)
+	ssoUuid    = String(new Uuid);
+	isLoggedIn = false;
+	loggingIn  = null;
+
+	constructor(baseUrl, options = {})
 	{
 		super();
 
 		this.baseUrl   = baseUrl || 'https://matrix.org/_matrix';
-		this.clientUrl = `${this.baseUrl}/client/r0`;
-		this.mediaUrl  = `${this.baseUrl}/media/r0`;
+		this.clientUrl = `${this.baseUrl}/client/v3`;
+		this.mediaUrl  = `${this.baseUrl}/media/v3`;
 
 		this.profileCache = new Map();
 		this.mediaCache   = new Map();
+		this.storage      = options.storage  ?? globalThis.sessionStorage;
+		this.interval     = options.interval ?? false;
 	}
 
 	get isLoggedIn()
 	{
-		if(sessionStorage.getItem('matrix:access-token'))
+		if(this.isLoggedIn)
 		{
 			this.dispatchEvent(new CustomEvent('logged-in'));
 		}
 
-		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+		const tokenJson = this.storage.getItem('matrix:access-token') || 'false';
 
 		const token = JSON.parse(tokenJson);
 
-		return sessionStorage.getItem('matrix:access-token');
+		return this.storage.getItem('matrix:access-token');
 	}
 
 	initSso(redirectUri, windowRef = window)
 	{
-		const path = 'login/sso/redirect?redirectUrl=' + redirectUri;
+		if(this.storage.getItem('matrix:access-token'))
+		{
+			this.isLoggedIn = true;
+			this.dispatchEvent(new CustomEvent('logged-in'));
+			return;
+		}
+
+		const query = new URLSearchParams({redirectUrl: redirectUri});
+
+		const path = `login/sso/redirect?${query}`;
 
 		const width  = 400;
 		const height = 600;
@@ -43,7 +59,7 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 		const ssoPopup = windowRef.open(
 			`${this.clientUrl}/${path}`
-			, 'matrix-login'
+			, `matrix-login-${this.ssoUuid}`
 			, options
 		);
 
@@ -70,9 +86,13 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 				return;
 			}
 
-			sessionStorage.setItem('matrix:access-token', JSON.stringify(request.data));
+			this.storage.setItem('matrix:access-token', JSON.stringify(request.data));
+
+			this.isLoggedIn = true;
 
 			this.dispatchEvent(new CustomEvent('logged-in'));
+
+			windowRef.removeEventListener('message', ssoListener);
 		};
 
 		windowRef.addEventListener('message', ssoListener);
@@ -100,9 +120,36 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 		});
 	}
 
+	logIn(redirectUri, windowRef = window)
+	{
+		if(!this.loggingIn)
+		{
+			this.loggingIn = new Promise(accept => {
+				this.loggingIn  = null;
+				this.addEventListener('logged-in', event => {
+					accept(event)
+				}, {once: true});
+			});
+		}
+
+		this.initSso(redirectUri, windowRef);
+
+		return this.loggingIn;
+	}
+
+	logOut()
+	{
+		this.storage.removeItem('matrix:access-token');
+
+		this.isLoggedIn = false;
+		this.loggingIn  = null;
+
+		this.dispatchEvent(new CustomEvent('logged-out'));
+	}
+
 	getGuestToken()
 	{
-		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+		const tokenJson = this.storage.getItem('matrix:access-token') || 'false';
 
 		const token = JSON.parse(tokenJson);
 
@@ -111,11 +158,15 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 			return Promise.resolve(token);
 		}
 
-		const getToken = fetch(`${this.clientUrl}/register?kind=guest`, {method:'POST', body: '{}'}).then(response=>response.json());
+		const query = new URLSearchParams({kind: 'guest'});
+
+		const getToken = fetch(`${this.clientUrl}/register?${query}`, {method:'POST', body: '{}'})
+		.then(response=>response.json());
 
 		getToken.then(token => {
 			token.isGuest = true;
-			sessionStorage.setItem('matrix:access-token', JSON.stringify(token))
+			this.isLoggedIn = true;
+			this.storage.setItem('matrix:access-token', JSON.stringify(token))
 		});
 
 		return getToken;
@@ -123,7 +174,7 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 	getToken()
 	{
-		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+		const tokenJson = this.storage.getItem('matrix:access-token') || 'false';
 
 		const token = JSON.parse(tokenJson);
 
@@ -137,14 +188,16 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 	listenForServerEvents()
 	{
-		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+		const token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
 		if(!token)
 		{
 			return Promise.reject('No access token found.');
 		}
 
-		const listener = `${this.clientUrl}/events?access_token=${token.access_token}`;
+		const query = new URLSearchParams({access_token: token.access_token});
+
+		const listener = `${this.clientUrl}/events?${query}`;
 
 		fetch(listener)
 		.then(response => response.json())
@@ -158,14 +211,20 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 			return;
 		}
 
-		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+		const token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
 		if(!token)
 		{
 			return Promise.reject('No access token found.');
 		}
 
-		const listener = `${this.clientUrl}/events?room_id=${room_id}&access_token=${token.access_token}&from=${from}`;
+		const query = new URLSearchParams({
+			access_token: token.access_token
+			, room_id
+			, from
+		});
+
+		const listener = `${this.clientUrl}/events?${query}`;
 
 		controller = controller || {cancelled: false};
 
@@ -174,6 +233,54 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 		.then(response => this.streamServerEvents(response, room_id, controller));
 
 		return controller;
+	}
+
+	streamServerEvents(chunkList, room_id, controller)
+	{
+		if(controller && controller.cancelled)
+		{
+			return;
+		}
+
+		if(!this.interval)
+		{
+			if(room_id)
+			{
+				this.listenForRoomEvents(room_id, controller, chunkList.end);
+			}
+			else
+			{
+				this.listenForServerEvents();
+			}
+		}
+		else
+		{
+			setTimeout(() => {
+				if(room_id)
+				{
+					this.listenForRoomEvents(room_id, controller, chunkList.end);
+				}
+				else
+				{
+					this.listenForServerEvents();
+				}
+			}, this.interval);
+		}
+
+		chunkList.chunk && chunkList.chunk.forEach(event => {
+
+			const detail = {};
+
+			if(!event.event_id)
+			{
+				event.event_id = `local:${new Uuid}`
+			}
+
+			Object.assign(detail, event);
+
+			this.dispatchEvent(new CustomEvent('matrix-event', {detail}));
+			this.dispatchEvent(new CustomEvent(detail.type, {detail}));
+		});
 	}
 
 	getUserProfile(userId)
@@ -192,26 +299,30 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 	getUserData(type)
 	{
-		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+		const token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
 		if(!token)
 		{
 			return Promise.reject('No access token found.');
 		}
 
-		return fetch(`${this.clientUrl}/user/${token.user_id}/account_data/${type}?access_token=${token.access_token}`).then(response => response.json());
+		const query = new URLSearchParams({access_token: token.access_token});
+
+		return fetch(`${this.clientUrl}/user/${token.user_id}/account_data/${type}?${query}`).then(response => response.json());
 	}
 
 	putUserData(type, body)
 	{
-		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+		const token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
 		if(!token)
 		{
 			return;
 		}
 
-		const endpoint = `${this.clientUrl}/user/${token.user_id}/account_data/${type}?access_token=${token.access_token}`;
+		const query = new URLSearchParams({access_token: token.access_token});
+
+		const endpoint = `${this.clientUrl}/user/${token.user_id}/account_data/${type}?${query}`;
 
 		return fetch(endpoint, {method: 'PUT', body}).then(response => {
 			if(!response.ok)
@@ -252,7 +363,7 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 	postMedia(body, filename)
 	{
-		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+		const tokenJson = this.storage.getItem('matrix:access-token') || 'false';
 
 		const token = JSON.parse(tokenJson);
 
@@ -261,7 +372,9 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 			return;
 		}
 
-		const url = `${this.mediaUrl}/upload?access_token=${token.access_token}`;
+		const query = new URLSearchParams({access_token: token.access_token});
+
+		const url = `${this.mediaUrl}/upload?${query}`;
 
 		const headers = new Headers({
 			'Content-Type': body.type
@@ -276,7 +389,7 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 	putEvent(roomId, type, body)
 	{
-		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+		const tokenJson = this.storage.getItem('matrix:access-token') || 'false';
 
 		const token = JSON.parse(tokenJson);
 
@@ -285,22 +398,25 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 			return;
 		}
 
-		const url = `${this.clientUrl}/rooms/${roomId}/send/${type}/${Math.random().toString(36)}?access_token=${token.access_token}`;
+		const query = new URLSearchParams({access_token: token.access_token});
+
+		const url = `${this.clientUrl}/rooms/${roomId}/send/${type}/${Math.random().toString(36)}?${query}`;
 
 		const headers = new Headers({
 			'Content-Type': 'application/json'
 		});
 
 		const method = 'PUT';
+		const keepalive = true
 
-		const options = {method, headers, body: JSON.stringify(body)};
+		const options = {method, headers, keepalive, body: JSON.stringify(body), keepalive};
 
 		return fetch(url, options).then(response => response.json());
 	}
 
 	getEvent(roomId, eventId)
 	{
-		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+		const tokenJson = this.storage.getItem('matrix:access-token') || 'false';
 
 		const token = JSON.parse(tokenJson);
 
@@ -309,7 +425,9 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 			return;
 		}
 
-		const url = `${this.clientUrl}/rooms/${roomId}/event/${eventId}?access_token=${token.access_token}`;
+		const query = new URLSearchParams({access_token: token.access_token});
+
+		const url = `${this.clientUrl}/rooms/${roomId}/event/${eventId}?${query}`;
 
 		const headers = new Headers({
 			'Content-Type': 'application/json'
@@ -324,7 +442,7 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 	sync()
 	{
-		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+		const tokenJson = this.storage.getItem('matrix:access-token') || 'false';
 
 		const token = JSON.parse(tokenJson);
 
@@ -333,14 +451,16 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 			return Promise.resolve();
 		}
 
-		const syncer = `${this.clientUrl}/sync?full_state=true&access_token=${token.access_token}`;
+		const query = new URLSearchParams({full_state: true, access_token: token.access_token});
+
+		const syncer = `${this.clientUrl}/sync?${query}`;
 
 		return fetch(syncer).then(response => response.json());
 	}
 
 	getRoomState(room_id)
 	{
-		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+		const tokenJson = this.storage.getItem('matrix:access-token') || 'false';
 
 		const token = JSON.parse(tokenJson);
 
@@ -349,28 +469,58 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 			return Promise.resolve();
 		}
 
-		const syncer = `${this.clientUrl}/rooms/${room_id}/state?access_token=${token.access_token}`;
+		const query = new URLSearchParams({access_token: token.access_token});
+
+		const syncer = `${this.clientUrl}/rooms/${room_id}/state?${query}`;
 
 		return fetch(syncer).then(response => response.json());
 	}
 
-	syncRoom(room_id, from = '')
+	syncRoom(room_id, from = null, filter = null)
 	{
-		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+		if(!this.isLoggedIn)
+		{
+			return Promise.reject('Logged out.');
+		}
+
+		const token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
 		if(!token)
 		{
 			return Promise.reject('No access token found.');
 		}
 
-		const syncer = `${this.clientUrl}/rooms/${room_id}/messages?dir=b&room_id=${room_id}&access_token=${token.access_token}&from=${from}`;
+		const query = new URLSearchParams({
+			access_token: token.access_token
+			, room_id
+			, dir: 'b'
+			, from: from ? from : ''
+			, filter: filter ? JSON.stringify(filter) : ''
+		});
 
-		return fetch(syncer).then(response => response.json());
+		const syncer = `${this.clientUrl}/rooms/${room_id}/messages?${query}`;
+
+		const controller = new AbortController();
+		const signal = controller.signal;
+		const abort = () => controller.abort();
+
+		this.addEventListener('logged-out', abort, {once:true});
+
+		const fetchFrame = fetch(syncer, {signal}).then(response => response.json());
+
+		fetchFrame.finally(this.removeEventListener('logged-out', abort));
+
+		return fetchFrame;
 	}
 
-	syncRoomHistory(room, from, callback = null)
+	syncRoomHistory(room, callback = null, to = false, from = null, filter = null)
 	{
-		return this.syncRoom(room, from).then(frame => {
+		return this.syncRoom(room, from, filter).then(frame => {
+			if(!this.isLoggedIn)
+			{
+				return Promise.reject('Logged out.');
+			}
+
 			const cancelable = true;
 			const detail     = {frame};
 
@@ -381,53 +531,37 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 				return;
 			}
 
-			frame.chunk && callback && frame.chunk.forEach(callback);
-
-			return new Promise(accept => {
-				setTimeout(
-					() => accept(frame.chunk.length && this.syncRoomHistory(room, frame.end, callback))
-					, 100
-				);
-			});
-
-		});
-	}
-
-	streamServerEvents(chunkList, room_id, controller)
-	{
-		if(controller && controller.cancelled)
-		{
-			return;
-		}
-
-		if(room_id)
-		{
-			this.listenForRoomEvents(room_id, controller, chunkList.end);
-		}
-		else
-		{
-			this.listenForServerEvents();
-		}
-
-		chunkList.chunk && chunkList.chunk.forEach(event => {
-
-			const detail = {};
-
-			if(!event.event_id)
+			if(callback && frame.chunk)
 			{
-				event.event_id = 'local:' + (1/Math.random()).toString(36)
+				for(const message of frame.chunk)
+				{
+					if(!this.isLoggedIn)
+					{
+						return Promise.reject('Logged out.');
+					}
+
+					if(to && message.origin_server_ts <= to)
+					{
+						return Promise.resolve();
+					}
+
+					if(callback(message) === false)
+					{
+						return Promise.resolve();
+					}
+				}
 			}
 
-			Object.assign(detail, event);
-
-			this.dispatchEvent(new CustomEvent('matrix-event', {detail}));
-			this.dispatchEvent(new CustomEvent(detail.type, {detail}));
+			return new Promise(accept => setTimeout(
+				() => accept(frame.chunk.length && this.syncRoomHistory(room, callback, to, frame.end, filter))
+				, this.interval ?? 0
+			));
 		});
 	}
 
 	getCurrentUserId()
 	{
-		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+		const tokenJson = this.storage.getItem('matrix:access-token') || 'false';
 
 		const token = JSON.parse(tokenJson);
 
@@ -443,14 +577,16 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 	{
 		const body = JSON.stringify({name, topic, visibility, initial_state});
 
-		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+		const token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
 		if(!token)
 		{
 			return Promise.resolve();
 		}
 
-		const url = `${this.clientUrl}/createRoom?access_token=${token.access_token}`;
+		const query = new URLSearchParams({access_token: token.access_token});
+
+		const url = `${this.clientUrl}/createRoom?${query}`;
 
 		const method = 'POST';
 
@@ -459,39 +595,45 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 	joinRoom(room_id)
 	{
-		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+		const token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
 		if(!token)
 		{
 			return Promise.reject('No access token found.');
 		}
 
-		fetch(`${this.clientUrl}/rooms/${room_id}/join?access_token=${token.access_token}`, {method:'POST'})
+		const query = new URLSearchParams({access_token: token.access_token});
+
+		fetch(`${this.clientUrl}/rooms/${room_id}/join?${query}`, {method:'POST'})
 		.then(response => response.json());
 	}
 
 	leaveRoom(room_id)
 	{
-		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+		const token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
 		if(!token)
 		{
 			return Promise.reject('No access token found.');
 		}
 
-		fetch(`${this.clientUrl}/rooms/${room_id}/leave?access_token=${token.access_token}`, {method:'POST'})
+		const query = new URLSearchParams({access_token: token.access_token});
+
+		fetch(`${this.clientUrl}/rooms/${room_id}/leave?${query}`, {method:'POST'})
 		.then(response => response.json());
 	}
 
 	whoAmI()
 	{
-		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+		const token = JSON.parse(this.storage.getItem('matrix:access-token') || 'false');
 
 		if(!token)
 		{
 			return Promise.reject('No access token found.');
 		}
 
-		return fetch(`${this.clientUrl}/account/whoami?access_token=${token.access_token}`).then(response => response.json());
+		const query = new URLSearchParams({access_token: token.access_token});
+
+		return fetch(`${this.clientUrl}/account/whoami?${query}`).then(response => response.json());
 	}
 }
