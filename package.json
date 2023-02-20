@@ -3,7 +3,7 @@
   "description": "Matrix API library for the frontend.",
   "license": "Apache-2.0",
   "author": "Sean Morris",
-  "version": "0.0.0-j",
+  "version": "0.0.0-k",
   "repository": "https://github.com/seanmorris/matrix-api",
   "devDependencies": {
     "@babel/cli": "^7.13.14",

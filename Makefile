@@ -2,7 +2,7 @@
 
 SHELL=bash -euxo pipefail
 
-.PHONY: all package dependencies clean
+.PHONY: all package dependencies clean dist/matrix-api.js dist/matrix-api.standalone.js
 
 all: dependencies dist/matrix-api.js dist/matrix-api.standalone.js package
 	mv node_modules mode_nodules
